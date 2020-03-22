@@ -19,7 +19,7 @@ imdsTest.Labels = Testing_labels.labels;
 
 % Split training datastore into two non-overlapping train and validation
 % sets. The validation set is used by MATLAB's trainNetwork function
-[imdsTrain, imdsVal] = splitEachLabel(imdsTrain, 0.8, 0.2);
+[imdsTrain, imdsVal] = splitEachLabel(imdsTrain, 0.8, 0.2);  
 
 % "help <layername>" for more information on parameters
 layers = [
@@ -31,13 +31,36 @@ layers = [
     % learn values for num_channels=64 filters
     % https://machinelearningmastery.com/convolutional-layers-for-deep-learning-neural-networks/
     convolution2dLayer(3,64,'Padding','same')
+    batchNormalizationLayer
+    reluLaye
+    maxPooling2dLayer(2, 'Stride', 2) % pool size [2,2], stride size [2,2]
+    % dropoutLayer() %OPTIONAL
+    
     convolution2dLayer(3,64,'Padding','same')
-
+    batchNormalizationLayer
+    reluLayer
+    maxPooling2dLayer(2, 'Stride', 2) % pool size [2,2], stride size [2,2]
+    % dropoutLayer() % OPTIONAL
     
     
+    fullyConnectedLayer(1024)
+    reluLayer
+    % dropoutLayer() % OPTIONAL
+    
+    fullyConnectedLayer(512)
+    reluLayer
+    % dropoutLayer() % OPTIONAL
+    
+    fullyConnectedLayer(128)
+    reluLayer
+    % dropoutLayer() % OPTIONAL
+    
+   
     % The output of the previous layer will have a different response for
     % different classes of inputs. Here, we classify these reponses
     
+    
+    %% OUTPUT LAYERS
     % Narrow down previous feature map to a vector as big as the number of
     % classes
     fullyConnectedLayer(10)
@@ -52,11 +75,11 @@ layers = [
 options = trainingOptions('adam', ...
     'MaxEpochs',10,...
     'ValidationData',imdsVal, ...
-    'InitialLearnRate',1e-4, ...
-    'ExecutionEnvironment','multi-gpu', ... set to 'cpu' or remove line
+    'InitialLearnRate',1e-4, ... 
+    'ExecutionEnvironment','cpu', ... % set to 'cpu' or remove line
     'Plots','training-progress', ...
-    'Shuffle', 'every-epoch', ...
-    'MiniBatchSize',16);
+    'Shuffle', 'every-epoch', ... 
+    'MiniBatchSize',16); 
 
 net = trainNetwork(imdsTrain, layers, options);
 save net
