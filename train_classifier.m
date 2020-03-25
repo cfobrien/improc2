@@ -7,15 +7,15 @@
 
 % Training images that are used to train the network
 % These images will be split into a two separate train and validation sets
-imdsTrain = imageDatastore('TRAINING/*.png', 'ReadFcn', @im2double);
+imdsTrain = imageDatastore('TRAINING/*.png', 'ReadFcn', @imr2d);
 Training_labels = load('Training_labels.mat');
-imdsTrain.Labels = Training_labels.labels;
+imdsTrain.Labels = categorical(cellstr(num2str(Training_labels.labels)));
 
 % Test images play no part in training the network
 % they are used only after training to test the performance of the network
-imdsTest = imageDatastore('TESTING/*.png', 'ReadFcn', @im2double);
+imdsTest = imageDatastore('TESTING/*.png', 'ReadFcn', @imr2d);
 Testing_labels = load('Testing_labels.mat');
-imdsTest.Labels = Testing_labels.labels;
+imdsTest.Labels = categorical(cellstr(num2str(Testing_labels.labels)));
 
 % Split training datastore into two non-overlapping train and validation
 % sets. The validation set is used by MATLAB's trainNetwork function
@@ -31,13 +31,36 @@ layers = [
     % learn values for num_channels=64 filters
     % https://machinelearningmastery.com/convolutional-layers-for-deep-learning-neural-networks/
     convolution2dLayer(3,64,'Padding','same')
+    batchNormalizationLayer
+    reluLayer
+    maxPooling2dLayer(2, 'Stride', 2) % pool size [2,2], stride size [2,2]
+    % dropoutLayer() %OPTIONAL
+    
     convolution2dLayer(3,64,'Padding','same')
-
+    batchNormalizationLayer
+    reluLayer
+    maxPooling2dLayer(2, 'Stride', 2) % pool size [2,2], stride size [2,2]
+    % dropoutLayer() % OPTIONAL
     
     
+    fullyConnectedLayer(1024)
+    reluLayer
+    % dropoutLayer() % OPTIONAL
+    
+    fullyConnectedLayer(512)
+    reluLayer
+    % dropoutLayer() % OPTIONAL
+    
+    fullyConnectedLayer(128)
+    reluLayer
+    % dropoutLayer() % OPTIONAL
+    
+   
     % The output of the previous layer will have a different response for
     % different classes of inputs. Here, we classify these reponses
     
+    
+    %% OUTPUT LAYERS
     % Narrow down previous feature map to a vector as big as the number of
     % classes
     fullyConnectedLayer(10)
@@ -60,3 +83,7 @@ options = trainingOptions('adam', ...
 
 net = trainNetwork(imdsTrain, layers, options);
 save net
+
+function im = imr2d(file)
+    im = im2double(imread(file));
+end
