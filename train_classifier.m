@@ -19,7 +19,7 @@ imdsTest.Labels = categorical(cellstr(num2str(Testing_labels.labels)));
 
 % Split training datastore into two non-overlapping train and validation
 % sets. The validation set is used by MATLAB's trainNetwork function
-[imdsTrain, imdsVal] = splitEachLabel(imdsTrain, 0.8, 0.2);
+[imdsTrain, imdsVal] = splitEachLabel(imdsTrain, 0.8, 0.2);  
 
 % "help <layername>" for more information on parameters
 layers = [
@@ -41,7 +41,6 @@ layers = [
     reluLayer
     maxPooling2dLayer(2, 'Stride', 2) % pool size [2,2], stride size [2,2]
     % dropoutLayer() % OPTIONAL
-    
     
     fullyConnectedLayer(1024)
     reluLayer
@@ -75,11 +74,11 @@ layers = [
 options = trainingOptions('adam', ...
     'MaxEpochs',10,...
     'ValidationData',imdsVal, ...
-    'InitialLearnRate',1e-4, ...
-    'ExecutionEnvironment','multi-gpu', ... set to 'cpu' or remove line
+    'InitialLearnRate',1e-4, ... 
+    'ExecutionEnvironment','cpu', ... % set to 'cpu' or remove line
     'Plots','training-progress', ...
-    'Shuffle', 'every-epoch', ...
-    'MiniBatchSize',16);
+    'Shuffle', 'every-epoch', ... 
+    'MiniBatchSize',16); 
 
 net = trainNetwork(imdsTrain, layers, options);
 save net
