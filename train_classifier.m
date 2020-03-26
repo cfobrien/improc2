@@ -13,13 +13,15 @@ clc;
 % These images will be split into a two separate train and validation sets
 imdsTrain = imageDatastore('TRAINING/*.png', 'ReadFcn', @imr2d);
 Training_labels = load('Training_labels.mat');
-imdsTrain.Labels = categorical(cellstr(num2str(Training_labels.labels)));
+%imdsTrain.Labels = categorical(cellstr(num2str(Training_labels.labels)));
+imdsTrain.Labels = categorical(sort(Training_labels.labels));
 
 % Test images play no part in training the network
 % they are used only after training to test the performance of the network
 imdsTest = imageDatastore('TESTING/*.png', 'ReadFcn', @imr2d);
 Testing_labels = load('Testing_labels.mat');
-imdsTest.Labels = categorical(cellstr(num2str(Testing_labels.labels)));
+%imdsTest.Labels = categorical(cellstr(num2str(Testing_labels.labels)));
+imdsTest.Labels = categorical(sort(Testing_labels.labels));
 
 % Split training datastore into two non-overlapping train and validation
 % sets. The validation set is used by MATLAB's trainNetwork function
@@ -76,13 +78,14 @@ layers = [
 ];
 
 options = trainingOptions('adam', ...
-    'MaxEpochs',50,...
+    'MaxEpochs',15,...
     'ValidationData',imdsVal, ...
+    'ValidationFreq',10, ...
     'InitialLearnRate',5e-5, ... 
-    'ExecutionEnvironment','multi-gpu', ... % set to 'cpu' or remove line
+    'ExecutionEnvironment', 'cpu', ...%'multi-gpu', ... % set to 'cpu' or remove line
     'Plots','training-progress', ...
-    'Shuffle', 'every-epoch');%, ... 
-    %'MiniBatchSize',4); 
+    'Shuffle', 'every-epoch',...%);%, ... 
+    'MiniBatchSize', 64); 
 
 net = trainNetwork(imdsTrain, layers, options);
 save net
