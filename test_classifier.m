@@ -7,22 +7,25 @@ clc;
 imdsTest = imageDatastore('TESTING/*.png', 'ReadFcn', @imr2d);
 Testing_labels = load('Testing_labels.mat');
 imdsTest.Labels = categorical(cellstr(num2str(Testing_labels.labels)));
+imdsTest = shuffle(imdsTest);
 
 load net
 
-fprintf("Press any key for next image or Ctrl+C to exit\n");
-fprintf("Actual class  |  Predicted Class\n");
-fprintf("================================\n");
-
-for i = 1 : numel(imdsTest.Files)
+num_test = 100;
+rand_indices = randi(num_test, numel(imdsTest.Files), 1); %indices associated with num_test random test images
+actual = zeros(num_test, 1);
+predicted = zeros(num_test, 1);
+for i = 1 : num_test
     im = readimage(imdsTest, i);
-    imshow(im);
-    
+    %compute actual and predicted classes of num_test random test images
     [argval, argmax] = max(predict(net, im));
-    
-    fprintf("       %d               %d\n", imdsTest.Labels(i), argmax);
-    pause;
+    predicted(i) = argmax;
+    actual(i) = imdsTest.Labels(i);
 end
+
+%compute and display confusion matrix
+C = confusionmat(actual, predicted);
+confusionchart(C);
 
 function im = imr2d(file)
     im = im2double(imread(file));
